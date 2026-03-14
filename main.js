@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const path      = require('path');
 const os        = require('os');
 const fs        = require('fs');
@@ -7,6 +7,7 @@ const { execFile } = require('child_process');
 const multer  = require('multer');
 const { parse } = require('csv-parse/sync');
 
+const { checkForUpdate, downloadUpdate, applyAndRestart } = require('./lib/updater');
 const { getSettings, saveSettings }                               = require('./lib/store');
 const { testConnection, fetchPrescriptionsReady, fetchAllPatients } = require('./lib/rx30');
 const { buildMessages }                                           = require('./lib/messages');
@@ -255,6 +256,35 @@ app.whenReady().then(() => {
     });
     win.loadURL(`http://localhost:${PORT}`);
     win.setMenuBarVisibility(false);
+
+    // ── Auto-update check (runs silently in background after window loads) ──
+    const currentVersion = require('./package.json').version;
+    checkForUpdate(currentVersion).then(async ({ hasUpdate, remoteVersion }) => {
+      if (!hasUpdate) return;
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'info',
+        title: 'Actualización disponible',
+        message: `Nueva versión disponible: v${remoteVersion}`,
+        detail: `Versión actual: v${currentVersion}\n\nSe descargará e instalará automáticamente. La aplicación se reiniciará.`,
+        buttons: ['Actualizar ahora', 'Más tarde'],
+        defaultId: 0,
+        cancelId: 1,
+      });
+      if (response !== 0) return;
+      try {
+        const batPath = await downloadUpdate(__dirname);
+        await dialog.showMessageBox(win, {
+          type: 'info',
+          title: 'Lista para instalar',
+          message: 'Actualización descargada. La aplicación se reiniciará ahora.',
+          buttons: ['Reiniciar'],
+          defaultId: 0,
+        });
+        applyAndRestart(batPath, app);
+      } catch (err) {
+        dialog.showErrorBox('Error de actualización', err.message);
+      }
+    }).catch(() => {}); // silently ignore network errors
   }, 600);
 });
 
