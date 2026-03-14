@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' http://localhost:* http://192.168.*; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" />
+  <title>Farmacia — Recordatorios</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ── Sidebar ────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>💊 Recordatorios</h1>
+    <p id="farmacia-name">Farmacia</p>
+  </div>
+
+  <div class="nav">
+    <div class="nav-item active" data-tab="dashboard">
+      <span class="icon">🏠</span> Inicio
+    </div>
+    <div class="nav-item" data-tab="clientes">
+      <span class="icon">👥</span> Clientes
+    </div>
+    <div class="nav-item" data-tab="historial">
+      <span class="icon">📋</span> Historial
+    </div>
+    <div class="nav-item" data-tab="config">
+      <span class="icon">⚙️</span> Configuración
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div>v1.0.0 · Local + Twilio</div>
+    <div id="network-url" style="margin-top:4px;font-size:10px;word-break:break-all"></div>
+  </div>
+</nav>
+
+<!-- ── Demo mode banner (hidden until settings confirm demo_mode) ── -->
+<div id="demo-banner" style="display:none;background:#f59e0b;color:#1c1917;text-align:center;padding:8px 16px;font-weight:600;font-size:13px;letter-spacing:.3px;position:sticky;top:0;z-index:100;">
+  ⚠️ MODO DEMOSTRACIÓN — No se enviarán llamadas ni mensajes reales
+</div>
+
+<!-- ── Main content ───────────────────────────────── -->
+<div class="content">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <h2 id="topbar-title">Inicio</h2>
+    <div class="topbar-right">
+      <span class="sync-status" id="sync-status"></span>
+      <div class="source-pill">
+        <button id="src-rx30" class="active" onclick="setSource('rx30')">Rx30</button>
+        <button id="src-csv"               onclick="setSource('csv')">CSV</button>
+      </div>
+      <button class="btn btn-primary btn-sm" id="sync-btn" onclick="doSync()">↻ Sincronizar</button>
+      <button class="btn btn-outline btn-sm" onclick="openTestModal()">🧪 Probar</button>
+    </div>
+  </div>
+
+  <!-- Hidden CSV file input (triggers on sync when source=csv) -->
+  <input type="file" id="csv-file-input" accept=".csv" style="display:none"
+         onchange="handleCSVUpload(this)" />
+
+  <!-- ── Dashboard tab ── -->
+  <div class="panel active" id="tab-dashboard">
+
+    <div id="dash-alert"></div>
+
+    <!-- CSV mode upload prompt -->
+    <div id="csv-upload-area" style="display:none;align-items:center;gap:12px;background:#eff6ff;border:1px dashed #93c5fd;border-radius:8px;padding:14px 18px;margin-bottom:16px">
+      <span style="font-size:22px">📂</span>
+      <div>
+        <strong style="font-size:13px">Modo CSV</strong>
+        <p style="font-size:12px;color:var(--gray-600);margin-top:2px">Haz clic en <strong>Sincronizar</strong> para seleccionar un archivo CSV, o arrástralo aquí.</p>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="cards">
+      <div class="card blue">
+        <div class="card-num" id="stat-recetas">—</div>
+        <div class="card-label">Recetas listas</div>
+      </div>
+      <div class="card amber">
+        <div class="card-num" id="stat-vencen">—</div>
+        <div class="card-label">Créditos por vencer</div>
+      </div>
+      <div class="card green">
+        <div class="card-num" id="stat-cumples">—</div>
+        <div class="card-label">Cumpleaños hoy</div>
+      </div>
+    </div>
+
+    <!-- Queue table -->
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <label>
+          <input type="checkbox" id="select-all" onchange="toggleAll(this.checked)" />
+          Seleccionar todo
+        </label>
+        <span id="selected-count" class="text-muted"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px"></th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+            <th>Vista previa del mensaje</th>
+          </tr>
+        </thead>
+        <tbody id="queue-tbody">
+          <tr>
+            <td colspan="5">
+              <div class="empty">
+                <div class="icon">🔄</div>
+                <p>Haz clic en <strong>Sincronizar</strong> para cargar los mensajes de hoy.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Send buttons -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-whatsapp" onclick="sendSelected('whatsapp')" disabled>
+        💬 Enviar por WhatsApp
+      </button>
+      <button class="btn btn-outline" id="btn-llamar" onclick="sendSelected('llamada')" disabled>
+        📞 Llamar
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Clientes tab ── -->
+  <div class="panel" id="tab-clientes">
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Buscar por nombre o teléfono…" oninput="filterClientes()" />
+      <button class="btn btn-outline btn-sm" onclick="loadClientes()">↻ Cargar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Fecha nacimiento</th>
+            <th>Saldo</th>
+            <th>Vence</th>
+            <th>Receta</th>
+          </tr>
+        </thead>
+        <tbody id="clientes-tbody">
+          <tr>
+            <td colspan="6">
+              <div class="empty">
+                <div class="icon">👥</div>
+                <p>Haz clic en <strong>Cargar</strong> para ver la lista de clientes.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Historial tab ── -->
+  <div class="panel" id="tab-historial">
+    <div class="search-row">
+      <input type="text" id="hist-search" placeholder="Filtrar por nombre…" oninput="filterHistory()" />
+      <button class="btn btn-outline btn-sm" onclick="loadHistory()">↻ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha/Hora</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+            <th>Canal</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <tr>
+            <td colspan="6">
+              <div class="empty">
+                <div class="icon">📋</div>
+                <p>No hay mensajes enviados aún.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Config tab ── -->
+  <div class="panel" id="tab-config">
+
+    <!-- Farmacia -->
+    <div class="config-section">
+      <h3>🏪 Farmacia</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre de la farmacia</label>
+          <input type="text" id="cfg-nombre" placeholder="Farmacia Feliciano" />
+        </div>
+        <div class="form-group">
+          <label>Teléfono (en mensajes)</label>
+          <input type="text" id="cfg-telefono" placeholder="787-000-0000" />
+        </div>
+        <div class="form-group" style="max-width:130px">
+          <label>% descuento cumpleaños</label>
+          <input type="number" id="cfg-descuento" min="0" max="100" placeholder="10" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Rx30 -->
+    <div class="config-section">
+      <h3>🗄️ Conexión Rx30</h3>
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="cfg-rx30-enabled" onchange="toggleRx30Fields()" />
+          <span class="slider"></span>
+        </label>
+        <label for="cfg-rx30-enabled">Activar integración con Rx30</label>
+      </div>
+      <div id="rx30-fields">
+        <div class="alert alert-info">
+          💡 Necesitas las credenciales del SQL Server de Rx30.
+          Contácta a soporte de Rx30 o tu administrador de IT para obtenerlas.
+          Una vez conectado, ejecuta la consulta de ejemplo para confirmar los nombres de tablas.
+        </div>
+        <div class="alert alert-info" style="margin-top:8px">
+          🔒 Las credenciales de conexión (servidor, usuario, contraseña) se configuran
+          directamente en el archivo <code>settings.json</code> por el administrador de IT.
+          No se muestran aquí por seguridad.
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="testRx30()">
+          🔌 Probar conexión guardada
+        </button>
+        <span id="rx30-test-result" class="text-muted" style="margin-left:10px"></span>
+      </div>
+    </div>
+
+    <!-- Twilio -->
+    <div class="config-section">
+      <h3>📱 Mensajes (WhatsApp / Llamadas)</h3>
+      <div class="alert alert-info">
+        🔒 Las credenciales de API (Account SID, Auth Token) se configuran en
+        <code>settings.json</code> por el administrador. No se muestran aquí por seguridad.
+      </div>
+    </div>
+
+    <!-- Audio grabado -->
+    <div class="config-section">
+      <h3>🎙️ Audio pregrabado (llamadas)</h3>
+      <div class="alert alert-info">
+        <div>
+          <strong>¿Cómo funciona?</strong><br>
+          Twilio reproduce un archivo de audio desde una URL pública en lugar de síntesis de voz.<br>
+          <strong>Pasos:</strong> 1) Graba el mensaje en tu teléfono (MP3 o WAV).
+          2) Súbelo a Google Drive o Dropbox y copia el enlace público.
+          3) Pégalo aquí. Si el campo está vacío, se usa síntesis de voz automáticamente.
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>URL del audio — "Receta lista" (MP3/WAV público)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="cfg-recording-url" placeholder="https://drive.google.com/…" style="flex:1" />
+            <button class="btn btn-outline btn-sm" onclick="testAudioUrl()">▶ Probar URL</button>
+          </div>
+        </div>
+      </div>
+      <p id="audio-test-result" class="text-muted" style="margin-top:4px;font-size:12px"></p>
+    </div>
+
+    <!-- Envío automático -->
+    <div class="config-section">
+      <h3>⏰ Envío automático</h3>
+      <div class="form-row">
+        <div class="form-group" style="max-width:130px">
+          <label>Hora</label>
+          <input type="time" id="cfg-schedule-hora" value="10:00" />
+        </div>
+        <div class="form-group" style="max-width:160px">
+          <label>Canal</label>
+          <select id="cfg-schedule-canal">
+            <option value="llamada">📞 Llamada</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Días</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="1" checked /> Lun</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="2" checked /> Mar</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="3" checked /> Mié</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="4" checked /> Jue</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="5" checked /> Vie</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="6" checked /> Sáb</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="cfg-day" value="0" /> Dom</label>
+        </div>
+      </div>
+      <p class="text-muted" style="font-size:12px;margin:8px 0">
+        Guarda la configuración primero. Luego haz clic en "Aplicar" para registrar la tarea en el Programador de tareas de Windows. Requiere que Rx30 esté habilitado.
+      </p>
+      <button class="btn btn-outline btn-sm" onclick="updateScheduler()">⚙️ Aplicar programación en Windows</button>
+      <span id="scheduler-result" class="text-muted" style="margin-left:10px;font-size:13px"></span>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveConfig()">💾 Guardar configuración</button>
+    <span id="cfg-save-result" class="text-muted" style="margin-left:10px"></span>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ── Confirm Modal ────────────────────────────── -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-confirm-title">Confirmar envío</h3>
+      <button class="modal-close" onclick="closeModal('modal-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-confirm-body"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-primary" id="modal-confirm-ok">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Progress Modal ───────────────────────────── -->
+<div class="modal-overlay" id="modal-progress">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="progress-title">Enviando mensajes…</h3>
+    </div>
+    <div class="modal-body">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+      <p id="progress-label" class="text-muted" style="text-align:center;margin-bottom:10px"></p>
+      <div class="progress-log" id="progress-log"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="progress-done-btn" onclick="closeModal('modal-progress')" disabled>
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Test Modal ────────────────────────────────── -->
+<div class="modal-overlay" id="modal-test">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🧪 Probar mensaje</h3>
+      <button class="modal-close" onclick="closeModal('modal-test')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Número de teléfono destino</label>
+        <input type="text" id="test-phone" placeholder="787-000-0000" style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de mensaje</label>
+          <select id="test-type" onchange="updateTestPreview()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px">
+            <option value="receta_lista">💊 Receta lista</option>
+            <option value="vencimiento_30d">💰 Crédito vence en 30 días</option>
+            <option value="vencimiento_7d">💰 Crédito vence en 7 días</option>
+            <option value="vencimiento_1d">⚠️ Crédito vence mañana</option>
+            <option value="cumpleanos">🎂 Cumpleaños</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Canal</label>
+          <select id="test-canal" onchange="updateTestPreview()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px">
+            <option value="whatsapp">💬 WhatsApp</option>
+            <option value="llamada">📞 Llamada</option>
+          </select>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:8px">Vista previa</div>
+      <div id="test-preview" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:12px;font-size:13px;line-height:1.5;min-height:60px;color:var(--gray-800)">
+        Selecciona un tipo de mensaje para ver la vista previa.
+      </div>
+      <p id="test-result" class="text-muted" style="margin-top:10px;font-size:13px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-test')">Cancelar</button>
+      <button class="btn btn-primary" id="test-send-btn" onclick="sendTestMessage()">Enviar prueba</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
