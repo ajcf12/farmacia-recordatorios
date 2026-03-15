@@ -1,6 +1,6 @@
 {
   "name": "farmacia-recordatorios",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Sistema de recordatorios para farmacia — Rx30 + Twilio",
   "main": "main.js",
   "scripts": {
