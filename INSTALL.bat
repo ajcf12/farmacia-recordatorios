@@ -94,30 +94,7 @@ echo.
 echo [4/4] Creando acceso directo e icono...
 echo Step 4: shortcut >> "%LOGFILE%"
 
-powershell -NoProfile -Command ^
-  "Add-Type -AssemblyName System.Drawing;" ^
-  "$sz=48; $bmp=New-Object System.Drawing.Bitmap($sz,$sz);" ^
-  "$g=[System.Drawing.Graphics]::FromImage($bmp);" ^
-  "$g.SmoothingMode='AntiAlias';" ^
-  "$g.Clear([System.Drawing.Color]::Transparent);" ^
-  "$g.FillEllipse((New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(0,140,90))),2,2,$sz-4,$sz-4);" ^
-  "$font=New-Object System.Drawing.Font('Arial',16,[System.Drawing.FontStyle]::Bold);" ^
-  "$sf=New-Object System.Drawing.StringFormat;" ^
-  "$sf.Alignment='Center'; $sf.LineAlignment='Center';" ^
-  "$rf=[System.Drawing.RectangleF]::FromLTRB(0,0,$sz,$sz);" ^
-  "$g.DrawString('Rx',$font,[System.Drawing.Brushes]::White,$rf,$sf);" ^
-  "$g.Dispose();" ^
-  "$ico=[System.Drawing.Icon]::FromHandle($bmp.GetHicon());" ^
-  "$fs=[System.IO.FileStream]::new('C:\FarmaciaApp\farmacia.ico',[System.IO.FileMode]::Create);" ^
-  "$ico.Save($fs); $fs.Dispose(); $bmp.Dispose();" ^
-  "$ws=New-Object -ComObject WScript.Shell;" ^
-  "$desktop=$ws.SpecialFolders('Desktop');" ^
-  "$sc=$ws.CreateShortcut($desktop+'\Farmacia Recordatorios.lnk');" ^
-  "$sc.TargetPath='C:\FarmaciaApp\node_modules\electron\dist\electron.exe';" ^
-  "$sc.Arguments='C:\FarmaciaApp';" ^
-  "$sc.WorkingDirectory='C:\FarmaciaApp';" ^
-  "$sc.IconLocation='C:\FarmaciaApp\farmacia.ico,0';" ^
-  "$sc.Save()" >> "%LOGFILE%" 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -File "%APPDIR%\make-shortcut.ps1" >> "%LOGFILE%" 2>&1
 if errorlevel 1 echo ADVERTENCIA: acceso directo no creado. La app igual funciona.
 
 echo       Listo.
