@@ -12,6 +12,9 @@ const { testConnection, fetchPrescriptionsReady, fetchAllPatients } = require('.
 const { buildMessages }                                           = require('./lib/messages');
 const { sendWhatsApp, makeCall }                                  = require('./lib/sender');
 const { logSent, getHistory }                                     = require('./lib/logger');
+const { checkForUpdate, downloadUpdate, applyAndRestart }         = require('./lib/updater');
+
+const APP_VERSION = require('./package.json').version;
 
 const PORT   = 3333;
 const upload = multer({ storage: multer.memoryStorage() });
@@ -126,6 +129,19 @@ api.get('/api/test-rx30', async (req, res) => {
   const s = getSettings();
   if (!s.rx30?.server) return res.json({ ok: false, error: 'Rx30 no configurado en settings.json.' });
   res.json(await testConnection(s.rx30));
+});
+
+// Updater endpoints
+api.get('/api/version', (req, res) => res.json({ version: APP_VERSION }));
+api.get('/api/check-update', async (req, res) => res.json(await checkForUpdate(APP_VERSION)));
+api.post('/api/apply-update', async (req, res) => {
+  try {
+    const batPath = await downloadUpdate(__dirname);
+    res.json({ ok: true });
+    applyAndRestart(batPath, app);
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
 });
 
 api.get('/api/sync-rx30', async (req, res) => {

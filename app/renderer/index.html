@@ -349,6 +349,17 @@
       <span id="scheduler-result" class="text-muted" style="margin-left:10px;font-size:13px"></span>
     </div>
 
+    <!-- Update -->
+    <div class="config-section">
+      <h3>🔄 Actualización de la aplicación</h3>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="text-muted" style="font-size:13px">Versión instalada: <strong id="app-version">—</strong></span>
+        <button class="btn btn-outline btn-sm" onclick="checkUpdate()">Verificar actualización</button>
+        <button class="btn btn-primary btn-sm" id="btn-apply-update" onclick="applyUpdate()" style="display:none">⬇ Instalar y reiniciar</button>
+      </div>
+      <p id="update-result" class="text-muted" style="font-size:13px;margin-top:8px"></p>
+    </div>
+
     <button class="btn btn-primary" onclick="saveConfig()">💾 Guardar configuración</button>
     <span id="cfg-save-result" class="text-muted" style="margin-left:10px"></span>
   </div>

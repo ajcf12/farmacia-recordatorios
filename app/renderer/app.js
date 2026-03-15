@@ -39,9 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   settings = await api.get('/api/settings');
   applySettingsToUI(settings);
 
-  // Show network URL in sidebar footer
-  const info = await api.get('/api/server-info');
+  const [info, ver] = await Promise.all([api.get('/api/server-info'), api.get('/api/version')]);
   document.getElementById('network-url').textContent = `Red: http://${info.ip}:${info.port}`;
+  document.getElementById('app-version').textContent = ver.version || '—';
 });
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -492,6 +492,37 @@ async function sendTestMessage() {
     res.style.color = 'var(--red)';
     res.textContent = `❌ ${result.error}`;
   }
+}
+
+// ── Updater ───────────────────────────────────────────────────────────────────
+async function checkUpdate() {
+  const el = document.getElementById('update-result');
+  const btn = document.getElementById('btn-apply-update');
+  el.style.color = '';
+  el.textContent = '⏳ Verificando…';
+  btn.style.display = 'none';
+  const result = await api.get('/api/check-update');
+  if (result.hasUpdate) {
+    el.style.color = 'var(--green)';
+    el.textContent = `✅ Nueva versión disponible: ${result.remoteVersion}`;
+    btn.style.display = '';
+  } else {
+    el.textContent = '✓ La aplicación está al día.';
+  }
+}
+
+async function applyUpdate() {
+  const el = document.getElementById('update-result');
+  const btn = document.getElementById('btn-apply-update');
+  btn.disabled = true;
+  el.textContent = '⬇ Descargando actualización… (no cierres la app)';
+  const result = await api.post('/api/apply-update', {});
+  if (!result.ok) {
+    el.style.color = 'var(--red)';
+    el.textContent = `❌ Error: ${result.error}`;
+    btn.disabled = false;
+  }
+  // If ok, the app will restart automatically — no further action needed
 }
 
 // ── Audio URL test ────────────────────────────────────────────────────────────
