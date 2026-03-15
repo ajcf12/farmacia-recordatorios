@@ -1,5 +1,4 @@
 Add-Type -AssemblyName System.Drawing
-Add-Type -AssemblyName System.Drawing.Drawing2D
 
 function RoundRect($path, $x, $y, $w, $h, $r) {
     $path.AddArc($x, $y, $r, $r, 180, 90)
