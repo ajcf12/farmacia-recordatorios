@@ -31,6 +31,7 @@ const DEFAULTS = {
     dias:  [1, 2, 3, 4, 5, 6],
     canal: 'llamada',
   },
+  demo_mode: true,
 };
 
 function getDir() {

@@ -71,10 +71,11 @@ function safeSettings(s) {
 function mergeSecure(incoming) {
   const current = getSettings();
   return {
-    farmacia: { ...current.farmacia, ...incoming.farmacia },
-    rx30:     { ...current.rx30,     enabled: !!incoming.rx30?.enabled },
-    twilio:   { ...current.twilio,   recording_receta_url: incoming.twilio?.recording_receta_url ?? current.twilio?.recording_receta_url },
-    schedule: incoming.schedule ? { ...current.schedule, ...incoming.schedule } : current.schedule,
+    farmacia:  { ...current.farmacia, ...incoming.farmacia },
+    rx30:      { ...current.rx30,     enabled: !!incoming.rx30?.enabled },
+    twilio:    { ...current.twilio,   recording_receta_url: incoming.twilio?.recording_receta_url ?? current.twilio?.recording_receta_url },
+    schedule:  incoming.schedule ? { ...current.schedule, ...incoming.schedule } : current.schedule,
+    demo_mode: !!current.demo_mode,  // preserve — only changeable via settings.json directly
   };
 }
 
