@@ -49,13 +49,14 @@ echo.
 :: Copy app files
 echo [1/4] Copiando archivos a %APPDIR% ...
 echo [1/4] Copiando archivos... >> "%LOGFILE%"
+cd /d "%~dp0"
 if not exist "%APPDIR%" mkdir "%APPDIR%"
-if not exist "%~dp0app" (
+if not exist "app" (
   echo ERROR: Carpeta "app" no encontrada junto al instalador.
-  echo ERROR: Carpeta app no encontrada en %~dp0 >> "%LOGFILE%"
+  echo ERROR: Carpeta app no encontrada en %CD% >> "%LOGFILE%"
   goto :error
 )
-xcopy /E /I /Y "%~dp0app" "%APPDIR%" >> "%LOGFILE%" 2>&1
+xcopy /E /I /Y "app" "%APPDIR%" >> "%LOGFILE%" 2>&1
 if errorlevel 1 (
   echo ERROR: Fallo al copiar archivos. Revisa el log: %LOGFILE%
   echo ERROR: xcopy fallo >> "%LOGFILE%"
