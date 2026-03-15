@@ -9,7 +9,7 @@ const os       = require('os');
 const { execFile } = require('child_process');
 
 const REPO        = 'ajcf12/farmacia-recordatorios';
-const RAW_PKG_URL = `https://raw.githubusercontent.com/${REPO}/main/package.json`;
+const RAW_PKG_URL = `https://raw.githubusercontent.com/${REPO}/main/app/package.json`;
 const ZIP_URL     = `https://github.com/${REPO}/archive/refs/heads/main.zip`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
