@@ -8,7 +8,10 @@ set LOGFILE=%TEMP%\farmacia-install.log
 net session >nul 2>&1
 if errorlevel 1 (
   echo Solicitando permisos de administrador...
-  powershell -Command "Start-Process cmd.exe -ArgumentList '/k \"%~f0\"' -Verb RunAs"
+  echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\_elev.vbs"
+  echo UAC.ShellExecute "cmd.exe", "/k ""%~f0""", "", "runas", 1 >> "%temp%\_elev.vbs"
+  wscript "%temp%\_elev.vbs"
+  del "%temp%\_elev.vbs" >nul 2>&1
   exit /b
 )
 
