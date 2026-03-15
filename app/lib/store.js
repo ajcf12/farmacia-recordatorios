@@ -21,7 +21,7 @@ const DEFAULTS = {
   twilio: {
     account_sid: '',
     auth_token: '',
-    whatsapp_from: '+14155238886',
+    whatsapp_from: '',
     call_from: '',
     recording_receta_url: '',
   },
