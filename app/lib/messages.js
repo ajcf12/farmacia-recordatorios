@@ -25,7 +25,7 @@ function buildMessages(customer, settings) {
   if (receta === '1' || receta === 'si' || receta === 'sí') {
     messages.push({
       type: 'receta_lista',
-      body: `Hola ${customer.nombre}, su medicamento está listo para recogerse en ${NAME}. Pase por nuestra farmacia o llámenos al ${PHONE} si tiene alguna pregunta.`,
+      body: `Hola, su medicamento está listo para recogerse en ${NAME}. Pase por nuestra farmacia o llámenos al ${PHONE} si tiene alguna pregunta.`,
       script: `Hola, le llamamos de ${NAME} para informarle que su medicamento está listo para recogerse. Puede pasar por nuestra farmacia en el horario de atención. Para más información llámenos al ${PHONE}. Gracias.`,
     });
   }
@@ -41,20 +41,20 @@ function buildMessages(customer, settings) {
       if (days === 30) {
         messages.push({
           type: 'vencimiento_30d',
-          body: `Hola ${customer.nombre}, te recordamos que tienes $${saldo} en crédito disponible en ${NAME} que vence el ${fechaFmt}. ¡Visítanos antes de que expire! 🛒`,
-          script: `Hola ${customer.nombre}, le llamamos de ${NAME}. Le recordamos que tiene ${saldo} dólares en crédito disponible que vence el ${fechaFmt}. Visítenos antes de que expire. Gracias.`,
+          body: `Hola, le recordamos que tiene $${saldo} en crédito disponible en ${NAME} que vence el ${fechaFmt}. ¡Visítenos antes de que expire! 🛒`,
+          script: `Hola, le llamamos de ${NAME}. Le recordamos que tiene ${saldo} dólares en crédito disponible que vence el ${fechaFmt}. Visítenos antes de que expire. Gracias.`,
         });
       } else if (days === 7) {
         messages.push({
           type: 'vencimiento_7d',
-          body: `Hola ${customer.nombre}, tu crédito de $${saldo} en ${NAME} vence en 7 días (${fechaFmt}). ¡No lo dejes ir! Pasa por la tienda o llámanos al ${PHONE}.`,
-          script: `Hola ${customer.nombre}, le llamamos de ${NAME}. Su crédito de ${saldo} dólares vence en 7 días, el ${fechaFmt}. No lo deje ir. Pase por la farmacia o llámenos al ${PHONE}. Gracias.`,
+          body: `Hola, su crédito de $${saldo} en ${NAME} vence en 7 días (${fechaFmt}). ¡No lo deje ir! Pase por la tienda o llámenos al ${PHONE}.`,
+          script: `Hola, le llamamos de ${NAME}. Su crédito de ${saldo} dólares vence en 7 días, el ${fechaFmt}. No lo deje ir. Pase por la farmacia o llámenos al ${PHONE}. Gracias.`,
         });
       } else if (days === 1) {
         messages.push({
           type: 'vencimiento_1d',
-          body: `⚠️ Hola ${customer.nombre}, mañana vence tu crédito de $${saldo} en ${NAME}. ¡Último día para usarlo! Llámanos al ${PHONE} si necesitas ayuda.`,
-          script: `Hola ${customer.nombre}, le llamamos de ${NAME} con un recordatorio urgente. Su crédito de ${saldo} dólares vence mañana. Es su último día para usarlo. Llámenos al ${PHONE} si necesita ayuda. Gracias.`,
+          body: `⚠️ Hola, mañana vence su crédito de $${saldo} en ${NAME}. ¡Último día para usarlo! Llámenos al ${PHONE} si necesita ayuda.`,
+          script: `Hola, le llamamos de ${NAME} con un recordatorio urgente. Su crédito de ${saldo} dólares vence mañana. Es su último día para usarlo. Llámenos al ${PHONE} si necesita ayuda. Gracias.`,
         });
       }
     }
@@ -66,8 +66,8 @@ function buildMessages(customer, settings) {
     if (bday && bday.getMonth() === today.getMonth() && bday.getDate() === today.getDate()) {
       messages.push({
         type: 'cumpleanos',
-        body: `🎂 ¡Feliz cumpleaños, ${customer.nombre}! De parte de toda la familia de ${NAME}, te deseamos un día increíble. Como regalo, tienes ${DISCOUNT}% de descuento en tu próxima visita esta semana. ¡Te esperamos!`,
-        script: `Hola ${customer.nombre}, toda la familia de ${NAME} le desea un muy feliz cumpleaños. Como regalo especial, tiene ${DISCOUNT} por ciento de descuento en su próxima visita esta semana. Que lo disfrute mucho. Gracias.`,
+        body: `🎂 ¡Feliz cumpleaños! De parte de toda la familia de ${NAME}, le deseamos un día increíble. Como regalo, tiene ${DISCOUNT}% de descuento en su próxima visita esta semana. ¡Le esperamos!`,
+        script: `Hola, la familia de ${NAME} le desea un muy feliz cumpleaños. Como regalo especial, tiene ${DISCOUNT} por ciento de descuento en su próxima visita esta semana. Que lo disfrute mucho. Gracias.`,
       });
     }
   }
