@@ -55,6 +55,7 @@ echo.
 
 :: Step 2: npm install
 echo [2/4] Instalando dependencias (3-5 minutos, requiere internet)...
+echo       Por favor espera, no cierres esta ventana...
 echo Step 2: npm install >> "%LOGFILE%"
 echo.
 cd /d "%APPDIR%"
@@ -91,10 +92,8 @@ echo.
 echo [4/4] Creando acceso directo...
 echo Step 4: shortcut >> "%LOGFILE%"
 set ELECTRON=%APPDIR%\node_modules\electron\dist\electron.exe
-set DESKTOP=%USERPROFILE%\Desktop
-set SHORTCUT=%DESKTOP%\Farmacia Recordatorios.lnk
 
-powershell -NoProfile -Command "$ws=New-Object -ComObject WScript.Shell; $sc=$ws.CreateShortcut('%SHORTCUT%'); $sc.TargetPath='%ELECTRON%'; $sc.Arguments='%APPDIR%'; $sc.WorkingDirectory='%APPDIR%'; $sc.Save()" >> "%LOGFILE%" 2>&1
+powershell -NoProfile -Command "$ws=New-Object -ComObject WScript.Shell; $sc=$ws.CreateShortcut($env:USERPROFILE+'\Desktop\Farmacia Recordatorios.lnk'); $sc.TargetPath='C:\FarmaciaApp\node_modules\electron\dist\electron.exe'; $sc.Arguments='C:\FarmaciaApp'; $sc.WorkingDirectory='C:\FarmaciaApp'; $sc.Save()" >> "%LOGFILE%" 2>&1
 if errorlevel 1 echo ADVERTENCIA: acceso directo no creado. La app igual funciona.
 
 echo       Listo.
