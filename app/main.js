@@ -237,6 +237,20 @@ api.post('/api/update-scheduler', (req, res) => {
 // History
 api.get('/api/history', (req, res) => res.json(getHistory()));
 
+// Debug — shows which fields are set (never exposes values)
+api.get('/api/debug-settings', (req, res) => {
+  const s = getSettings();
+  res.json({
+    twilio: {
+      account_sid:   s.twilio?.account_sid   ? '✓ set' : '✗ empty',
+      auth_token:    s.twilio?.auth_token     ? '✓ set' : '✗ empty',
+      call_from:     s.twilio?.call_from      ? '✓ set' : '✗ empty',
+      whatsapp_from: s.twilio?.whatsapp_from  ? '✓ set' : '✗ empty',
+    },
+    settingsFile: require('path').join(require('electron').app.getPath('userData'), 'settings.json'),
+  });
+});
+
 // Test message
 api.post('/api/send-test', async (req, res) => {
   const { phone, type, canal } = req.body;
