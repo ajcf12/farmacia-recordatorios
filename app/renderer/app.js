@@ -39,9 +39,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   settings = await api.get('/api/settings');
   applySettingsToUI(settings);
 
-  const [info, ver] = await Promise.all([api.get('/api/server-info'), api.get('/api/version')]);
-  document.getElementById('network-url').textContent = `Red: http://${info.ip}:${info.port}`;
-  document.getElementById('app-version').textContent = ver.version || '—';
+  const ver = await api.get('/api/version');
+  const v = ver.version || '—';
+  document.getElementById('sidebar-version').textContent = v;
+  document.getElementById('app-version').textContent = v;
 });
 
 // ── Navigation ────────────────────────────────────────────────────────────────
