@@ -56,12 +56,14 @@ echo.
 :: Step 2: npm install
 echo [2/4] Instalando dependencias (3-5 minutos, requiere internet)...
 echo       Por favor espera, no cierres esta ventana...
+echo       Veras texto desplazarse a continuacion - es normal.
 echo Step 2: npm install >> "%LOGFILE%"
 echo.
 cd /d "%APPDIR%"
-npm install >> "%LOGFILE%" 2>&1
+npm install
 if errorlevel 1 goto :npmerror
-echo       Listo.
+echo.
+echo       [2/4] Listo.
 echo npm OK >> "%LOGFILE%"
 echo.
 
@@ -98,6 +100,7 @@ if errorlevel 1 echo ADVERTENCIA: acceso directo no creado. La app igual funcion
 
 echo       Listo.
 echo.
+echo.
 echo =====================================================
 echo   INSTALACION COMPLETA
 echo   Abre "Farmacia Recordatorios" en el escritorio.
@@ -105,7 +108,8 @@ echo   Inicia en MODO DEMOSTRACION (sin envios reales).
 echo =====================================================
 echo.
 echo OK >> "%LOGFILE%"
-pause
+echo Presiona cualquier tecla para cerrar este instalador...
+pause >nul
 exit /b 0
 
 :nonodejs
