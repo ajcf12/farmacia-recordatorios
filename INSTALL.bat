@@ -62,9 +62,16 @@ echo.
 cd /d "%APPDIR%"
 npm install
 if errorlevel 1 goto :npmerror
-echo.
-echo       [2/4] Listo.
 echo npm OK >> "%LOGFILE%"
+
+cls
+echo.
+echo =====================================================
+echo   Instalador - Farmacia Recordatorios v1.0
+echo =====================================================
+echo.
+echo   [1/4] Archivos copiados        OK
+echo   [2/4] Dependencias instaladas  OK
 echo.
 
 :: Step 3: settings.json
@@ -107,8 +114,9 @@ echo   Inicia en MODO DEMOSTRACION (sin envios reales).
 echo =====================================================
 echo.
 echo OK >> "%LOGFILE%"
-echo Presiona cualquier tecla para cerrar este instalador...
+echo   Presiona cualquier tecla para cerrar...
 pause >nul
+echo.
 exit /b 0
 
 :nonodejs
