@@ -40,16 +40,39 @@ function buildQueue(customers, settings) {
   return queue;
 }
 
+function parseMDY(str) {
+  // Converts M/DD/YYYY or MM/DD/YYYY to YYYY-MM-DD
+  if (!str || !str.includes('/')) return null;
+  const [m, d, y] = str.split('/');
+  if (!y || y.length !== 4) return null;
+  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+}
+
 function parseCSVBuffer(buffer) {
   const records = parse(buffer.toString('utf8'), { columns: true, skip_empty_lines: true, trim: true });
-  return records.map(r => ({
-    nombre:            r.nombre            || r.Nombre            || '',
-    telefono:         (r.telefono          || r.Telefono          || '').replace(/\D/g,'').slice(-10),
-    fecha_nacimiento:  r.fecha_nacimiento   || r.FechaNacimiento   || null,
-    saldo:             r.saldo              || r.Saldo              || null,
-    fecha_vencimiento: r.fecha_vencimiento  || r.FechaVencimiento  || null,
-    receta_lista:      r.receta_lista       || r.RecetaLista       || '0',
-  }));
+  return records.map(r => {
+    // Detect Rx30 format by presence of 'LAST NAME' column
+    const isRx30 = 'LAST NAME' in r;
+    if (isRx30) {
+      const phone = ((r['AREA'] || '') + (r['XCHG'] || '') + (r['NBR'] || '')).replace(/\D/g,'').slice(-10);
+      return {
+        nombre:            `${(r['FIRST NAME'] || '').trim()} ${(r['LAST NAME'] || '').trim()}`.trim(),
+        telefono:          phone,
+        fecha_nacimiento:  parseMDY(r['BIRTHDAY']),
+        saldo:             null,
+        fecha_vencimiento: null,
+        receta_lista:      '0',
+      };
+    }
+    return {
+      nombre:            r.nombre            || r.Nombre            || '',
+      telefono:         (r.telefono          || r.Telefono          || '').replace(/\D/g,'').slice(-10),
+      fecha_nacimiento:  r.fecha_nacimiento   || r.FechaNacimiento   || null,
+      saldo:             r.saldo              || r.Saldo              || null,
+      fecha_vencimiento: r.fecha_vencimiento  || r.FechaVencimiento  || null,
+      receta_lista:      r.receta_lista       || r.RecetaLista       || '0',
+    };
+  });
 }
 
 // Sensitive fields never sent to the browser — managed via settings.json only.
