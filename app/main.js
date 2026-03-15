@@ -113,13 +113,24 @@ function checkPassword(req, res) {
 api.post('/api/admin/get-settings', (req, res) => {
   if (!checkPassword(req, res)) return;
   const s = getSettings();
-  res.json({ ok: true, twilio: s.twilio });
+  res.json({
+    ok: true,
+    twilio: s.twilio,
+    rx30: {
+      server:   s.rx30?.server   || '',
+      port:     s.rx30?.port     || 1433,
+      database: s.rx30?.database || 'RX30',
+      user:     s.rx30?.user     || '',
+      password: s.rx30?.password || '',
+    },
+  });
 });
 api.post('/api/admin/save-settings', (req, res) => {
   if (!checkPassword(req, res)) return;
   const current = getSettings();
   const updated = { ...current };
   if (req.body.twilio) updated.twilio = { ...current.twilio, ...req.body.twilio };
+  if (req.body.rx30)   updated.rx30   = { ...current.rx30,   ...req.body.rx30, enabled: current.rx30?.enabled };
   if (req.body.new_password) updated.admin_password = req.body.new_password;
   saveSettings(updated);
   res.json({ ok: true });

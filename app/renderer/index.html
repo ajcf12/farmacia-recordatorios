@@ -232,19 +232,31 @@
         <label for="cfg-rx30-enabled">Activar integración con Rx30</label>
       </div>
       <div id="rx30-fields">
-        <div class="alert alert-info">
-          💡 Necesitas las credenciales del SQL Server de Rx30.
-          Contácta a soporte de Rx30 o tu administrador de IT para obtenerlas.
-          Una vez conectado, ejecuta la consulta de ejemplo para confirmar los nombres de tablas.
+        <div class="form-row">
+          <div class="form-group" style="flex:2;min-width:180px">
+            <label>Servidor (IP o nombre)</label>
+            <input type="text" id="cfg-rx30-server" placeholder="192.168.1.X" autocomplete="off" />
+          </div>
+          <div class="form-group" style="max-width:90px">
+            <label>Puerto</label>
+            <input type="number" id="cfg-rx30-port" placeholder="1433" />
+          </div>
+          <div class="form-group" style="max-width:120px">
+            <label>Base de datos</label>
+            <input type="text" id="cfg-rx30-database" placeholder="RX30" autocomplete="off" />
+          </div>
         </div>
-        <div class="alert alert-info" style="margin-top:8px">
-          🔒 Las credenciales de conexión (servidor, usuario, contraseña) se configuran
-          directamente en el archivo <code>settings.json</code> por el administrador de IT.
-          No se muestran aquí por seguridad.
+        <div class="form-row">
+          <div class="form-group">
+            <label>Usuario SQL</label>
+            <input type="text" id="cfg-rx30-user" placeholder="usuario" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label>Contraseña SQL</label>
+            <input type="password" id="cfg-rx30-password" placeholder="••••••••" autocomplete="new-password" />
+          </div>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="testRx30()">
-          🔌 Probar conexión guardada
-        </button>
+        <button class="btn btn-outline btn-sm" onclick="testRx30()">🔌 Probar conexión</button>
         <span id="rx30-test-result" class="text-muted" style="margin-left:10px"></span>
       </div>
     </div>

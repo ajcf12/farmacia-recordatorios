@@ -80,6 +80,12 @@ async function unlockConfig() {
   document.getElementById('cfg-twilio-token').value         = result.twilio?.auth_token      || '';
   document.getElementById('cfg-twilio-call-from').value     = result.twilio?.call_from       || '';
   document.getElementById('cfg-twilio-whatsapp-from').value = result.twilio?.whatsapp_from   || '';
+  // Populate Rx30 credential fields
+  document.getElementById('cfg-rx30-server').value   = result.rx30?.server   || '';
+  document.getElementById('cfg-rx30-port').value     = result.rx30?.port     || '1433';
+  document.getElementById('cfg-rx30-database').value = result.rx30?.database || 'RX30';
+  document.getElementById('cfg-rx30-user').value     = result.rx30?.user     || '';
+  document.getElementById('cfg-rx30-password').value = result.rx30?.password || '';
   closeModal('modal-config-lock');
   switchTab('config');
 }
@@ -379,11 +385,18 @@ async function saveConfig() {
     const adminPayload = {
       password: configPassword,
       twilio: {
-        account_sid:         document.getElementById('cfg-twilio-sid').value.trim(),
-        auth_token:          document.getElementById('cfg-twilio-token').value.trim(),
-        call_from:           document.getElementById('cfg-twilio-call-from').value.trim(),
-        whatsapp_from:       document.getElementById('cfg-twilio-whatsapp-from').value.trim(),
+        account_sid:          document.getElementById('cfg-twilio-sid').value.trim(),
+        auth_token:           document.getElementById('cfg-twilio-token').value.trim(),
+        call_from:            document.getElementById('cfg-twilio-call-from').value.trim(),
+        whatsapp_from:        document.getElementById('cfg-twilio-whatsapp-from').value.trim(),
         recording_receta_url: document.getElementById('cfg-recording-url').value.trim(),
+      },
+      rx30: {
+        server:   document.getElementById('cfg-rx30-server').value.trim(),
+        port:     parseInt(document.getElementById('cfg-rx30-port').value) || 1433,
+        database: document.getElementById('cfg-rx30-database').value.trim() || 'RX30',
+        user:     document.getElementById('cfg-rx30-user').value.trim(),
+        password: document.getElementById('cfg-rx30-password').value,
       },
     };
     if (newPwd) { adminPayload.new_password = newPwd; configPassword = newPwd; }
