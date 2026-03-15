@@ -4,6 +4,14 @@ set APPDIR=C:\FarmaciaApp
 set DESKTOP=%USERPROFILE%\Desktop
 set LOGFILE=%TEMP%\farmacia-install.log
 
+:: Auto-elevate if not running as admin
+net session >nul 2>&1
+if errorlevel 1 (
+  echo Solicitando permisos de administrador...
+  powershell -Command "Start-Process cmd.exe -ArgumentList '/k \"%~f0\"' -Verb RunAs"
+  exit /b
+)
+
 :: Start log
 echo Farmacia Recordatorios — Log de instalacion > "%LOGFILE%"
 echo Fecha: %DATE% %TIME% >> "%LOGFILE%"
