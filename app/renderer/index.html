@@ -252,10 +252,41 @@
 
     <!-- Twilio -->
     <div class="config-section">
-      <h3>📱 Mensajes (WhatsApp / Llamadas)</h3>
-      <div class="alert alert-info">
-        🔒 Las credenciales de API (Account SID, Auth Token) se configuran en
-        <code>settings.json</code> por el administrador. No se muestran aquí por seguridad.
+      <h3>📱 Twilio — WhatsApp / Llamadas</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account SID</label>
+          <input type="password" id="cfg-twilio-sid" placeholder="AC••••••••••••••••••••••••••••••••" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Auth Token</label>
+          <input type="password" id="cfg-twilio-token" placeholder="••••••••••••••••••••••••••••••••" autocomplete="new-password" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Número de llamadas</label>
+          <input type="text" id="cfg-twilio-call-from" placeholder="+17872711691" />
+        </div>
+        <div class="form-group">
+          <label>Número WhatsApp</label>
+          <input type="text" id="cfg-twilio-whatsapp-from" placeholder="+14155238886" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Change password -->
+    <div class="config-section">
+      <h3>🔑 Cambiar contraseña de Configuración</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nueva contraseña</label>
+          <input type="password" id="cfg-new-password" placeholder="Nueva contraseña" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Confirmar</label>
+          <input type="password" id="cfg-new-password-confirm" placeholder="Repetir contraseña" autocomplete="new-password" />
+        </div>
       </div>
     </div>
 
@@ -402,6 +433,28 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-test')">Cancelar</button>
       <button class="btn btn-primary" id="test-send-btn" onclick="sendTestMessage()">Enviar prueba</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Config Lock Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="modal-config-lock">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header">
+      <h3>🔒 Configuración</h3>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--gray-600);font-size:13px;margin-bottom:14px">Ingresa la contraseña de administrador.</p>
+      <div class="form-group">
+        <input type="password" id="config-password-input" placeholder="Contraseña"
+               style="width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:6px;font-size:14px"
+               onkeydown="if(event.key==='Enter') unlockConfig()" />
+      </div>
+      <p id="config-lock-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none">Contraseña incorrecta.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-config-lock')">Cancelar</button>
+      <button class="btn btn-primary" onclick="unlockConfig()">Entrar</button>
     </div>
   </div>
 </div>

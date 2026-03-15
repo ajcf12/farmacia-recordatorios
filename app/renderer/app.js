@@ -15,6 +15,7 @@ let allHistory   = [];
 let source       = 'rx30';
 let lastSynced   = null;
 let settings     = {};
+let configPassword = null; // set after successful unlock
 
 const TYPE_LABELS = {
   receta_lista:    { label: '💊 Receta lista',  cls: 'badge-receta' },
@@ -46,15 +47,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Navigation ────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-item').forEach(el => {
   el.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
     const tab = el.dataset.tab;
-    document.getElementById('tab-' + tab).classList.add('active');
-    document.getElementById('topbar-title').textContent = TAB_TITLES[tab] || '';
-    if (tab === 'historial') loadHistory();
+    if (tab === 'config' && !configPassword) {
+      document.getElementById('config-password-input').value = '';
+      document.getElementById('config-lock-error').style.display = 'none';
+      openModal('modal-config-lock');
+      return;
+    }
+    switchTab(tab);
   });
 });
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('topbar-title').textContent = TAB_TITLES[tab] || '';
+  if (tab === 'historial') loadHistory();
+}
+
+async function unlockConfig() {
+  const pwd = document.getElementById('config-password-input').value;
+  const errEl = document.getElementById('config-lock-error');
+  errEl.style.display = 'none';
+  const result = await api.post('/api/admin/get-settings', { password: pwd });
+  if (!result.ok) { errEl.style.display = 'block'; return; }
+  configPassword = pwd;
+  // Populate Twilio fields with real values
+  document.getElementById('cfg-twilio-sid').value           = result.twilio?.account_sid    || '';
+  document.getElementById('cfg-twilio-token').value         = result.twilio?.auth_token      || '';
+  document.getElementById('cfg-twilio-call-from').value     = result.twilio?.call_from       || '';
+  document.getElementById('cfg-twilio-whatsapp-from').value = result.twilio?.whatsapp_from   || '';
+  closeModal('modal-config-lock');
+  switchTab('config');
+}
 
 // ── Source selector ───────────────────────────────────────────────────────────
 function setSource(s) {
@@ -317,6 +344,9 @@ async function testRx30() {
 }
 
 async function saveConfig() {
+  const saveEl = document.getElementById('cfg-save-result');
+
+  // Save public settings
   const newSettings = {
     farmacia: {
       nombre:               document.getElementById('cfg-nombre').value.trim()    || 'la farmacia',
@@ -325,17 +355,53 @@ async function saveConfig() {
     },
     rx30:   { enabled: document.getElementById('cfg-rx30-enabled').checked },
     twilio: { recording_receta_url: document.getElementById('cfg-recording-url').value.trim() },
-  };
-  newSettings.schedule = {
-    hora:  document.getElementById('cfg-schedule-hora').value || '10:00',
-    canal: document.getElementById('cfg-schedule-canal').value,
-    dias:  [...document.querySelectorAll('.cfg-day:checked')].map(cb => Number(cb.value)),
+    schedule: {
+      hora:  document.getElementById('cfg-schedule-hora').value || '10:00',
+      canal: document.getElementById('cfg-schedule-canal').value,
+      dias:  [...document.querySelectorAll('.cfg-day:checked')].map(cb => Number(cb.value)),
+    },
   };
   await api.post('/api/settings', newSettings);
   settings = newSettings;
-  document.getElementById('cfg-save-result').textContent = '✅ Guardado';
   document.getElementById('farmacia-name').textContent = newSettings.farmacia.nombre;
-  setTimeout(() => { document.getElementById('cfg-save-result').textContent = ''; }, 2500);
+
+  // Save sensitive Twilio settings via admin endpoint
+  if (configPassword) {
+    const newPwd     = document.getElementById('cfg-new-password').value;
+    const confirmPwd = document.getElementById('cfg-new-password-confirm').value;
+    if (newPwd && newPwd !== confirmPwd) {
+      saveEl.style.color = 'var(--red)';
+      saveEl.textContent = '❌ Las contraseñas no coinciden.';
+      setTimeout(() => { saveEl.textContent = ''; saveEl.style.color = ''; }, 3000);
+      return;
+    }
+    const adminPayload = {
+      password: configPassword,
+      twilio: {
+        account_sid:         document.getElementById('cfg-twilio-sid').value.trim(),
+        auth_token:          document.getElementById('cfg-twilio-token').value.trim(),
+        call_from:           document.getElementById('cfg-twilio-call-from').value.trim(),
+        whatsapp_from:       document.getElementById('cfg-twilio-whatsapp-from').value.trim(),
+        recording_receta_url: document.getElementById('cfg-recording-url').value.trim(),
+      },
+    };
+    if (newPwd) { adminPayload.new_password = newPwd; configPassword = newPwd; }
+    const res = await api.post('/api/admin/save-settings', adminPayload);
+    if (!res.ok) {
+      saveEl.style.color = 'var(--red)';
+      saveEl.textContent = `❌ ${res.error}`;
+      setTimeout(() => { saveEl.textContent = ''; saveEl.style.color = ''; }, 3000);
+      return;
+    }
+    if (newPwd) {
+      document.getElementById('cfg-new-password').value = '';
+      document.getElementById('cfg-new-password-confirm').value = '';
+    }
+  }
+
+  saveEl.style.color = 'var(--green)';
+  saveEl.textContent = '✅ Guardado';
+  setTimeout(() => { saveEl.textContent = ''; saveEl.style.color = ''; }, 2500);
 }
 
 async function updateScheduler() {

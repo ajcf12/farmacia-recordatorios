@@ -99,6 +99,28 @@ api.get('/api/server-info', (req, res) => {
 api.get('/api/settings',  (req, res) => res.json(safeSettings(getSettings())));
 api.post('/api/settings', (req, res) => { saveSettings(mergeSecure(req.body)); res.json({ ok: true }); });
 
+// Admin endpoints — require password, allow reading/writing sensitive fields
+function checkPassword(req, res) {
+  const current = getSettings();
+  const expected = current.admin_password || 'farmacia123';
+  if (req.body.password !== expected) { res.json({ ok: false, error: 'Contraseña incorrecta.' }); return false; }
+  return true;
+}
+api.post('/api/admin/get-settings', (req, res) => {
+  if (!checkPassword(req, res)) return;
+  const s = getSettings();
+  res.json({ ok: true, twilio: s.twilio });
+});
+api.post('/api/admin/save-settings', (req, res) => {
+  if (!checkPassword(req, res)) return;
+  const current = getSettings();
+  const updated = { ...current };
+  if (req.body.twilio) updated.twilio = { ...current.twilio, ...req.body.twilio };
+  if (req.body.new_password) updated.admin_password = req.body.new_password;
+  saveSettings(updated);
+  res.json({ ok: true });
+});
+
 // Rx30 — test uses saved credentials only, never from request body
 api.get('/api/test-rx30', async (req, res) => {
   const s = getSettings();
