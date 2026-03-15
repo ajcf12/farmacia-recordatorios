@@ -47,8 +47,8 @@ async function makeCall(phone, script, settings, recordingUrl = null) {
   // playing immediately. An 8-second pause lets the handset ring 1-2 times so
   // the person picks up INTO the silence rather than into the message.
   const twiml = audioUrl
-    ? `<Response><Pause length="8"/><Play>${audioUrl}</Play></Response>`
-    : `<Response><Pause length="8"/><Say voice="alice" language="es-MX">${escapeXml(script)}</Say></Response>`;
+    ? `<Response><Pause length="2"/><Play>${audioUrl}</Play></Response>`
+    : `<Response><Pause length="2"/><Say voice="alice" language="es-MX">${escapeXml(script)}</Say></Response>`;
   const call = await getClient(settings).calls.create({ from, to, twiml });
   return call.sid;
 }
